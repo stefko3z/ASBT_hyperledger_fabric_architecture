@@ -1,0 +1,3 @@
+# ignore chaincode stuff
+*.tar.gz
+log.txt
