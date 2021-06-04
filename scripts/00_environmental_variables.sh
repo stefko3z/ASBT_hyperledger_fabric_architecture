@@ -1,4 +1,4 @@
-
+#!/bin/bash
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 export FABRIC_CFG_PATH=${PWD}/artifacts/channel/config/

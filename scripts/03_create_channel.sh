@@ -1,3 +1,4 @@
+#!/bin/bash
 # import definitions
 . scripts/00_environmental_variables.sh
 

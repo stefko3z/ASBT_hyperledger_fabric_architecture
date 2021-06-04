@@ -1,3 +1,4 @@
+#!/bin/bash
 # Go to docker-compose file
 pushd ./artifacts/
 

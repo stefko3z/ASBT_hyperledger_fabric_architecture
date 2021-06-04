@@ -1,3 +1,4 @@
+#!/bin/bash
 # Go to docker-compose file
 pushd ./artifacts/
 
@@ -6,9 +7,9 @@ echo "Stopping Fabric network"
 docker-compose down -v --remove-orphans
 
 # Prune unused containers
-#docker container prune -f
+docker container prune -f
 
 # Prune unused volumes
-#docker volume prune -f
+docker volume prune -f
 
 popd 
