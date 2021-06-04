@@ -1,5 +1,5 @@
 #!/bin/bash
-# import definitions
+# source definitions
 . scripts/00_environmental_variables.sh
 
 createChannel(){

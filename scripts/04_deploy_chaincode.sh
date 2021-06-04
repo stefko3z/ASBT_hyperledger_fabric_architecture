@@ -149,8 +149,7 @@ chaincodeInvoke() {
 }
 
 chaincodeQuery() {
-    setGlobalsForPeer0Org2
-
+    setGlobalsForProducer1Peer0
     # Query all cars
     # peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} -c '{"Args":["queryAllCars"]}'
 
