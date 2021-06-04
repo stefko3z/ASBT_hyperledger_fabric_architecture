@@ -1,8 +1,9 @@
+
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
-export PEER0_PRODUCER1_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer1.example.com/peers/peer0.producer1.example.com/tls/ca.crt
-export PEER0_PRODUCER2_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer2.example.com/peers/peer0.producer2.example.com/tls/ca.crt
 export FABRIC_CFG_PATH=${PWD}/artifacts/channel/config/
+
+export PRIVATE_DATA_CONFIG=${PWD}/artifacts/private-data/collections_config.json
 
 export CHANNEL_NAME=mychannel
 
@@ -12,6 +13,9 @@ export CHANNEL_NAME=mychannel
 #     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
     
 # }
+
+# Producer1
+export PEER0_PRODUCER1_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer1.example.com/peers/peer0.producer1.example.com/tls/ca.crt
 
 setGlobalsForProducer1Peer0(){
     export CORE_PEER_LOCALMSPID="Producer1MSP"
@@ -25,15 +29,16 @@ setGlobalsForProducer1Peer1(){
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PRODUCER1_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer1.example.com/users/Admin@producer1.example.com/msp
     export CORE_PEER_ADDRESS=localhost:8051
-    
 }
+
+# Producer2
+export PEER0_PRODUCER2_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer2.example.com/peers/peer0.producer2.example.com/tls/ca.crt
 
 setGlobalsForProducer2Peer0(){
     export CORE_PEER_LOCALMSPID="Producer2MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PRODUCER2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer2.example.com/users/Admin@producer2.example.com/msp
-    export CORE_PEER_ADDRESS=localhost:9051
-    
+    export CORE_PEER_ADDRESS=localhost:9051   
 }
 
 setGlobalsForProducer2Peer1(){
@@ -41,43 +46,4 @@ setGlobalsForProducer2Peer1(){
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PRODUCER2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/peerOrganizations/producer2.example.com/users/Admin@producer2.example.com/msp
     export CORE_PEER_ADDRESS=localhost:10051
-    
 }
-
-createChannel(){
-    rm -rf ./channel-artifacts/*
-    setGlobalsForProducer1Peer0
-    
-    peer channel create -o localhost:7050 -c $CHANNEL_NAME \
-    --ordererTLSHostnameOverride orderer.example.com \
-    -f ./artifacts/channel/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block \
-    --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA
-}
-
-joinChannel(){
-    setGlobalsForProducer1Peer0
-    peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
-    
-    setGlobalsForProducer1Peer1
-    peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
-    
-    setGlobalsForProducer2Peer0
-    peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
-    
-    setGlobalsForProducer2Peer1
-    peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
-    
-}
-
-updateAnchorPeers(){
-    setGlobalsForProducer1Peer0
-    peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./artifacts/channel/${CORE_PEER_LOCALMSPID}anchors.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA
-    
-    setGlobalsForProducer2Peer0
-    peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./artifacts/channel/${CORE_PEER_LOCALMSPID}anchors.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA
-    
-}
-
-createChannel
-joinChannel
-updateAnchorPeers
