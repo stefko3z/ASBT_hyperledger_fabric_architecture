@@ -1,7 +1,7 @@
 {
     "name": "vaccine-contract",
     "version": "1.0.0",
-    "description": "Chaincode (Node.js) for a vaccine as part of a project for the seminar Advanced Blockchain Technologies SS2021 at TUM.",
+    "description": "Chaincode (Node.js) for a order of vaccines as part of a project for the seminar Advanced Blockchain Technologies SS2021 at TUM.",
     "main": "index.js",
     "engines": {
         "node": ">=8",
