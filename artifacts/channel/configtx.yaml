@@ -103,6 +103,74 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: peer0.producer2.example.com
               Port: 9051
+    
+    - &Hospital1
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Hospital1MSP
+
+        # ID to load the MSP definition as
+        ID: Hospital1MSP
+
+        MSPDir: crypto-config/peerOrganizations/hospital1.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Hospital1MSP.admin', 'Hospital1MSP.peer', 'Hospital1MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Hospital1MSP.admin', 'Hospital1MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Hospital1MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Hospital1MSP.peer')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.hospital1.example.com
+              Port: 11051
+
+    - &Hospital2
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Hospital2MSP
+
+        # ID to load the MSP definition as
+        ID: Hospital2MSP
+
+        MSPDir: crypto-config/peerOrganizations/hospital2.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Hospital2MSP.admin', 'Hospital2MSP.peer', 'Hospital2MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Hospital2MSP.admin', 'Hospital2MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Hospital2MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Hospital2MSP.peer')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.hospital2.example.com
+              Port: 12051
 
 ################################################################################
 #
@@ -310,6 +378,8 @@ Profiles:
             Organizations:
                 - *Producer1
                 - *Producer2
+                - *Hospital1
+                - *Hospital2
             Capabilities:
                 <<: *ApplicationCapabilities
 
@@ -358,3 +428,5 @@ Profiles:
                 Organizations:
                 - *Producer1
                 - *Producer2
+                - *Hospital1
+                - *Hospital2

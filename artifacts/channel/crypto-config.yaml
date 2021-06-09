@@ -58,3 +58,31 @@ PeerOrgs:
 
     Users:
       Count: 1
+  
+  - Name: Hospital1
+    Domain: hospital1.example.com
+    EnableNodeOUs: true
+
+    Template:
+      Count: 1
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+      SANS:
+        - "localhost"
+
+    Users:
+      Count: 1
+  
+  - Name: Hospital2
+    Domain: hospital2.example.com
+    EnableNodeOUs: true
+
+    Template:
+      Count: 1
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+      SANS:
+        - "localhost"
+
+    Users:
+      Count: 1

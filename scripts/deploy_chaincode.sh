@@ -35,6 +35,14 @@ installChaincode() {
     # setGlobalsForProducer2Peer1
     # peer lifecycle chaincode install ${CC_NAME}.tar.gz
     # echo "===================== Chaincode is installed on peer1.producer2 ===================== "
+
+    setGlobalsForHospital1Peer0
+    peer lifecycle chaincode install ${CC_NAME}.tar.gz
+    echo "===================== Chaincode is installed on peer0.hospital1 ===================== "
+
+    setGlobalsForHospital2Peer0
+    peer lifecycle chaincode install ${CC_NAME}.tar.gz
+    echo "===================== Chaincode is installed on peer0.hospital2 ===================== "
 }
 
 queryInstalled() {
@@ -57,25 +65,6 @@ approveForMyProducer1() {
     echo "===================== chaincode approved from Producer1 ===================== "
 }
 
-getBlock() {
-    setGlobalsForProducer1Peer0
-    # peer channel fetch 10 -c mychannel -o localhost:7050 \
-    #     --ordererTLSHostnameOverride orderer.example.com --tls \
-    #     --cafile $ORDERER_CA
-
-    peer channel getinfo  -c mychannel -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com --tls \
-        --cafile $ORDERER_CA
-}
-
-checkCommitReadyness() {
-    setGlobalsForProducer1Peer0
-    peer lifecycle chaincode checkcommitreadiness \
-        --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${VERSION} \
-        --sequence ${VERSION} --output json --init-required
-    echo "===================== checking commit readyness from Producer1 ===================== "
-}
-
 approveForMyProducer2() {
     setGlobalsForProducer2Peer0
     peer lifecycle chaincode approveformyorg -o localhost:7050 \
@@ -87,6 +76,36 @@ approveForMyProducer2() {
     echo "===================== chaincode approved from Producer2 ===================== "
 }
 
+approveForMyHospital1() {
+    setGlobalsForHospital1Peer0
+    peer lifecycle chaincode approveformyorg -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} \
+        --version ${VERSION} --init-required --package-id ${PACKAGE_ID} \
+        --sequence ${VERSION} \
+
+    echo "===================== chaincode approved from Hospital1 ===================== "
+}
+
+approveForMyHospital2() {
+    setGlobalsForHospital2Peer0
+    peer lifecycle chaincode approveformyorg -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} \
+        --version ${VERSION} --init-required --package-id ${PACKAGE_ID} \
+        --sequence ${VERSION} \
+
+    echo "===================== chaincode approved from Hospital2 ===================== "
+}
+
+checkCommitReadyness() {
+    setGlobalsForProducer1Peer0
+    peer lifecycle chaincode checkcommitreadiness \
+        --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${VERSION} \
+        --sequence ${VERSION} --output json --init-required
+    echo "===================== checking commit readyness from Producer1 ===================== "
+}
+
 commitChaincodeDefinition() {
     setGlobalsForProducer1Peer0
     peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
@@ -94,6 +113,8 @@ commitChaincodeDefinition() {
         --channelID $CHANNEL_NAME --name ${CC_NAME} \
         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_PRODUCER1_CA \
         --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_PRODUCER2_CA \
+        --peerAddresses localhost:11051 --tlsRootCertFiles $PEER0_HOSPITAL1_CA \
+        --peerAddresses localhost:12051 --tlsRootCertFiles $PEER0_HOSPITAL2_CA \
         --version ${VERSION} --sequence ${VERSION} --init-required
 }
 
@@ -110,6 +131,8 @@ chaincodeInvokeInit() {
         -C $CHANNEL_NAME -n ${CC_NAME} \
         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_PRODUCER1_CA \
         --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_PRODUCER2_CA \
+        --peerAddresses localhost:11051 --tlsRootCertFiles $PEER0_HOSPITAL1_CA \
+        --peerAddresses localhost:12051 --tlsRootCertFiles $PEER0_HOSPITAL2_CA \
         --isInit -c '{"Args":[]}'
 }
 
@@ -123,6 +146,8 @@ chaincodeInitLedger() {
         -C $CHANNEL_NAME -n ${CC_NAME} \
         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_PRODUCER1_CA \
         --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_PRODUCER2_CA \
+        --peerAddresses localhost:11051 --tlsRootCertFiles $PEER0_HOSPITAL1_CA \
+        --peerAddresses localhost:12051 --tlsRootCertFiles $PEER0_HOSPITAL2_CA \
         -c '{"function": "initLedger","Args":[]}'
 }
 
@@ -135,6 +160,10 @@ queryInstalled
 approveForMyProducer1
 checkCommitReadyness
 approveForMyProducer2
+checkCommitReadyness
+approveForMyHospital1
+checkCommitReadyness
+approveForMyHospital2
 checkCommitReadyness
 commitChaincodeDefinition
 queryCommitted
