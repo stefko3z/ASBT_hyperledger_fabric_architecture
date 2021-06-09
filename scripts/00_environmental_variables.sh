@@ -67,3 +67,20 @@ setGlobalsForHospital2Peer0(){
     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/peerOrganizations/hospital2.example.com/users/Admin@hospital2.example.com/msp
     export CORE_PEER_ADDRESS=localhost:12051   
 }
+
+# Chaincode variables
+setGlobalsForOrderChaincode() {
+    export CHANNEL_NAME="mychannel"
+    export CC_RUNTIME_LANGUAGE="node"  # as we're using javascript
+    export CC_SRC_PATH="./artifacts/src/order-contract"
+    export CC_NAME=order
+    export VERSION=1
+}
+
+setGlobalsForVaccineChaincode() {
+    export CHANNEL_NAME="mychannel"
+    export CC_RUNTIME_LANGUAGE="node"
+    export CC_SRC_PATH="./artifacts/src/vaccine-contract"
+    export CC_NAME=vaccine
+    export VERSION=1
+}

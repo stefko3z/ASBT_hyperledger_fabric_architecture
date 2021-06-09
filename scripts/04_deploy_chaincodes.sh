@@ -6,11 +6,7 @@
 deployOrderChaincode() {
     echo "===================== Starting deployment of Order Chaincode ===================== "
     
-    export CHANNEL_NAME="mychannel"
-    export CC_RUNTIME_LANGUAGE="node"  # as we're using javascript
-    export CC_SRC_PATH="./artifacts/src/order-contract"
-    export CC_NAME=order
-    export VERSION=1
+    setGlobalsForOrderChaincode
 
     . scripts/deploy_chaincode.sh
 
@@ -21,11 +17,7 @@ deployOrderChaincode() {
 deployVaccineChaincode() {
     echo "===================== Starting deployment of Vaccine Chaincode ===================== "
 
-    export CHANNEL_NAME="mychannel"
-    export CC_RUNTIME_LANGUAGE="node"
-    export CC_SRC_PATH="./artifacts/src/vaccine-contract"
-    export CC_NAME=vaccine
-    export VERSION=1
+    setGlobalsForVaccineChaincode
 
     . scripts/deploy_chaincode.sh
 
@@ -33,7 +25,7 @@ deployVaccineChaincode() {
 }
 
 # Deployments
-deployOrderChaincode
-sleep 2s
+#deployOrderChaincode
+#sleep 2s
 deployVaccineChaincode
 sleep 2s
