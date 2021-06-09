@@ -9,6 +9,11 @@ const ProducerMSPIDs = [
     "Producer2MSP"
 ];
 
+const HospitalMSPIDs = [
+    "Hospital1MSP",
+    "Hospital2MSP"
+];
+
 const VaccineStatus = {
     produced: "PRODUCED",
     shipped: "SHIPPED",
@@ -33,6 +38,7 @@ class VaccineContract extends Contract {
                 id: `v${id}`,
                 name: 'Zenika',
                 producerMSPID: cid.getMSPID(),
+                owner: cid.getMSPID(),
                 status: VaccineStatus.disposed,
                 location: cid.getMSPID(),
                 administeredOnPerson: null,
@@ -97,6 +103,7 @@ class VaccineContract extends Contract {
                 name: name,
                 producerMSPID: cid.getMSPID(),
                 status: VaccineStatus.produced,
+                owner: cid.getMSPID(),
                 location: cid.getMSPID(),
                 administeredOnPerson: null,
                 administeredAtLocation:null,
@@ -108,8 +115,45 @@ class VaccineContract extends Contract {
         }
     }
 
-    async ship(ctx, recipient, vaccineList) {
+    // Ships the listed vaccines to the hospital in recipient
+    async ship(ctx, recipientMSPID, vaccineListAsString) {
+        let cid = new ClientIdentity(ctx.stub);
+        let vaccineList = JSON.parse(vaccineListAsString);
 
+        if(!ProducerMSPIDs.includes(cid.getMSPID())) {
+            throw new Error(`Error: ${cid.getMSPID()} is not a valid producer`);
+        }
+
+        if(!HospitalMSPIDs.includes(recipientMSPID)) {
+            throw new Error(`Error: ${recipientMSPID} is not a valid hospital`);
+        }
+
+        if(!Array.isArray(vaccineList) || vaccineList.length == 0) {
+            throw new Error(`Error: vaccineList is empty or not an array`);
+        }
+
+        for(let id of vaccineList) {
+            let vaccineAsBytes = await ctx.stub.getState(id);
+            if(!vaccineAsBytes || vaccineAsBytes.length === 0) {
+                throw new Error(`${id} does not exist`);
+            }
+
+            let vaccine = JSON.parse(Buffer.from(vaccineAsBytes).toString('utf8'));
+
+            if(vaccine.producerMSPID != cid.getMSPID()) {
+                throw new Error(`Error: ${cid.getMSPID()} does not own ${id}`);
+            }
+
+            if(vaccine.status != VaccineStatus.produced) {
+                throw new Error(`Error: Invalid state for ${id}`);
+            }
+
+            vaccine.owner = recipientMSPID;
+            vaccine.status = VaccineStatus.shipped;
+            vaccine.location = "TRANSIT";
+
+            await ctx.stub.putState(vaccine.id, Buffer.from(JSON.stringify(vaccine)));
+        };
     }
 }
 
