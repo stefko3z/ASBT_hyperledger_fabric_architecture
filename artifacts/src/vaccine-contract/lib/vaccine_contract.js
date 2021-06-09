@@ -109,8 +109,9 @@ class VaccineContract extends Contract {
                 administeredAtLocation:null,
                 administeredOnDate: null
             }
-            id = id + 1;
             await ctx.stub.putState(`v${id}`, Buffer.from(JSON.stringify(vaccine)));
+
+            id = id + 1;
             await ctx.stub.putState('counter', Buffer.from(id.toString()));
         }
     }
@@ -151,6 +152,42 @@ class VaccineContract extends Contract {
             vaccine.owner = recipientMSPID;
             vaccine.status = VaccineStatus.shipped;
             vaccine.location = "TRANSIT";
+
+            await ctx.stub.putState(vaccine.id, Buffer.from(JSON.stringify(vaccine)));
+        };
+    }
+
+    // Acknowledges vaccines as successfuly shipped
+    async acknowledgeShipment(ctx, vaccineListAsString) {
+        let cid = new ClientIdentity(ctx.stub);
+        let vaccineList = JSON.parse(vaccineListAsString);
+
+        if(!HospitalMSPIDs.includes(cid.getMSPID())) {
+            throw new Error(`Error: ${cid.getMSPID()} is not a valid hospital`);
+        }
+
+        if(!Array.isArray(vaccineList) || vaccineList.length == 0) {
+            throw new Error(`Error: vaccineList is empty or not an array`);
+        }
+
+        for(let id of vaccineList) {
+            let vaccineAsBytes = await ctx.stub.getState(id);
+            if(!vaccineAsBytes || vaccineAsBytes.length === 0) {
+                throw new Error(`${id} does not exist`);
+            }
+
+            let vaccine = JSON.parse(Buffer.from(vaccineAsBytes).toString('utf8'));
+
+            if(vaccine.owner != cid.getMSPID()) {
+                throw new Error(`Error: ${cid.getMSPID()} does not own ${id}`);
+            }
+
+            if(vaccine.status != VaccineStatus.shipped) {
+                throw new Error(`Error: Invalid state for ${id}`);
+            }
+
+            vaccine.status = VaccineStatus.instock;
+            vaccine.location = cid.getMSPID;
 
             await ctx.stub.putState(vaccine.id, Buffer.from(JSON.stringify(vaccine)));
         };
