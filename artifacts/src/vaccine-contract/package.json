@@ -1,0 +1,25 @@
+{
+    "name": "vaccine-contract",
+    "version": "1.0.0",
+    "description": "Chaincode (Node.js) for a vaccine as part of a project for the seminar Advanced Blockchain Technologies SS2021 at TUM.",
+    "main": "index.js",
+    "engines": {
+        "node": ">=8",
+        "npm": ">=5"
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "pretest": "npm run lint",
+        "start": "fabric-chaincode-node start"
+    },
+    "engineStrict": true,
+    "author": "Stefan Vladov",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fabric-contract-api": "^2.0.0",
+        "fabric-shim": "^2.0.0"
+    },
+    "devDependencies": {
+        "eslint": "^4.19.1"
+    }
+}
