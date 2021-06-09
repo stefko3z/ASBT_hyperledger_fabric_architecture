@@ -113,6 +113,19 @@ chaincodeInvokeInit() {
         --isInit -c '{"Args":[]}'
 }
 
+chaincodeInitLedger() {
+    ## Init ledger
+    setGlobalsForProducer1Peer0
+    peer chaincode invoke -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com \
+        --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA \
+        -C $CHANNEL_NAME -n ${CC_NAME} \
+        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_PRODUCER1_CA \
+        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_PRODUCER2_CA \
+        -c '{"function": "initLedger","Args":[]}'
+}
+
 # Run this function if you add any new dependency in chaincode
 presetup
 
@@ -126,3 +139,5 @@ checkCommitReadyness
 commitChaincodeDefinition
 queryCommitted
 chaincodeInvokeInit
+sleep 5s
+chaincodeInitLedger
