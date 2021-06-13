@@ -18,7 +18,6 @@ const VaccineStatus = {
     produced: "PRODUCED",
     shipped: "SHIPPED",
     received: "RECEIVED",
-    instock: "INSTOCK",
     administered: "ADMINISTERED",
     disposed: "DISPOSED"
 }
@@ -59,6 +58,27 @@ class VaccineContract extends Contract {
                 record = strValue;
             }
             allResults.push({ Key: key, Record: record });
+        }
+
+        return JSON.stringify(allResults);
+    }
+
+    async getAllVaccinesForOrder(ctx, orderId) {
+        const startKey = 'v1000';
+        const endKey = 'v9999';
+        const allResults = [];
+        for await (const { key, value } of ctx.stub.getStateByRange(startKey, endKey)) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            if(record.orderId == orderId) {
+                allResults.push({ Key: key, Record: record });
+            }  
         }
 
         return JSON.stringify(allResults);
@@ -173,7 +193,7 @@ class VaccineContract extends Contract {
                 throw new Error(`Error: Invalid state for ${id}`);
             }
 
-            vaccine.status = VaccineStatus.instock;
+            vaccine.status = VaccineStatus.received;
             vaccine.location = cid.getMSPID;
 
             await ctx.stub.putState(vaccine.id, Buffer.from(JSON.stringify(vaccine)));

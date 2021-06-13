@@ -154,6 +154,35 @@ class OrderContract extends Contract {
 
         return true;
     }
+
+    async completeOrder(ctx, orderId) {
+        let cid = new ClientIdentity(ctx.stub);
+
+        let order = JSON.parse(await this.getOrder(ctx, orderId));
+
+        if(order.acceptor != cid.getMSPID()) {
+            throw new Error(`Error: ${cid.getMSPID()} is not assigned ${orderId}`);
+        }
+
+        let ccArgs = ['getAllVaccinesForOrder', orderId];
+        let vaccinesString = await ctx.stub.invokeChaincode('vaccine', ccArgs, 'mychannel');
+        let vaccines = JSON.parse(Buffer.from(vaccinesString.payload));
+        
+
+        let allShipped = true;
+        vaccines.forEach(vaccine => {
+            if(vaccine.Record.status != "RECEIVED") {
+                allShipped = false;
+            }
+        });
+
+        if(!allShipped) {
+            throw new Error(`Error: ${orderId} is not yet completed`);
+        }
+
+        order.status = OrderStatus.completed;
+        await ctx.stub.putState(order.id, Buffer.from(JSON.stringify(order)));
+    }
 }
 
 module.exports = OrderContract;
