@@ -21,23 +21,21 @@ const OrderStatus = {
 }
 
 class OrderContract extends Contract {
-    
+
     // Dummy function to prepopulate the ledger with info
     async initLedger(ctx) {
         console.info('============= START : Initialize Ledger ===========');
-        let cid = new ClientIdentity(ctx.stub);
 
         // Counter for ids
         let id = 1000;
         await ctx.stub.putState('counter', Buffer.from(id.toString()));
-	placeOrder(ctx, "Producer1MSP", 5)
 
-	console.info('============= END : Initialize Ledger ===========');
+        console.info('============= END : Initialize Ledger ===========');
     }
 
     async getOrder(ctx, orderId) {
         const orderAsBytes = await ctx.stub.getState(orderId);
-        if(!orderAsBytes || orderAsBytes.length === 0) {
+        if (!orderAsBytes || orderAsBytes.length === 0) {
             throw new Error(`${orderId} does not exist`);
         }
 
@@ -48,7 +46,7 @@ class OrderContract extends Contract {
         const startKey = 'o1000';
         const endKey = 'o9999';
         const allResults = [];
-        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+        for await (const { key, value } of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
             try {
@@ -68,18 +66,18 @@ class OrderContract extends Contract {
         let cid = new ClientIdentity(ctx.stub);
         let n = parseInt(size);
 
-        if(!HospitalMSPIDs.includes(cid.getMSPID())) {
+        if (!HospitalMSPIDs.includes(cid.getMSPID())) {
             throw new Error(`Error: ${cid.getMSPID()} is not a valid hospital`);
         }
-        if(!ProducerMSPIDs.includes(acceptorMSPID)) {
+        if (!ProducerMSPIDs.includes(acceptorMSPID)) {
             throw new Error(`Error: ${acceptorMSPID} is not a valid producer`);
         }
-        if(n <= 0) {
+        if (n <= 0) {
             throw new Error(`Error: size: ${size} must be > 0`);
         }
 
         let id = parseInt(await ctx.stub.getState('counter'));
-    
+
         let order = {
             id: `o${id}`,
             status: OrderStatus.placed,
@@ -87,19 +85,19 @@ class OrderContract extends Contract {
             acceptor: acceptorMSPID,
             size: n,
             vaccineList: []
-         }
-         await ctx.stub.putState(`o${id}`, Buffer.from(JSON.stringify(order)));
+        }
+        await ctx.stub.putState(`o${id}`, Buffer.from(JSON.stringify(order)));
 
-         id = id + 1;
-         await ctx.stub.putState('counter', Buffer.from(id.toString()));
+        id = id + 1;
+        await ctx.stub.putState('counter', Buffer.from(id.toString()));
     }
 
     // Accepts the placed order
     async accept(ctx, orderId) {
         let cid = new ClientIdentity(ctx.stub);
-        let order = JSON.parse(getOrder(ctx, orderId));
+        let order = JSON.parse(await this.getOrder(ctx, orderId));
 
-        if(order.acceptor != cid.getMSPID()) {
+        if (order.acceptor != cid.getMSPID()) {
             throw new Error(`Error: ${cid.getMSPID()} is not authorized to accept`);
         }
 
@@ -107,43 +105,54 @@ class OrderContract extends Contract {
         await ctx.stub.putState(orderId, Buffer.from(JSON.stringify(order)));
     }
 
-    async checkAcceptor(orderId, acceptorMSPID) {
-	let order = JSON.parse(getOrder(ctx, orderId));
-	if(order.acceptor != acceptorMSPID) {
-	   throw new Error(`Error: ${cid.getMSPID()} does not own ${orderId}`);
+    async getOrderStatusEnum(ctx) {
+        return OrderStatus;
+    }
+
+    async addVaccineToOrder(ctx, orderId, vaccineId) {
+        let cid = new ClientIdentity(ctx.stub);
+
+        let order = JSON.parse(await this.getOrder(ctx, orderId));
+
+        let ccArgs = ['getVaccine', vaccineId];
+        let vaccineString = await ctx.stub.invokeChaincode('vaccine', ccArgs, 'mychannel');
+        let vaccine = JSON.parse(Buffer.from(vaccineString.payload));
+        
+        if(order.acceptor != cid.getMSPID()) {
+            throw new Error(`Error: ${cid.getMSPID()} is not assigned ${order.id}. Order is assigned to ${order.acceptor}`);
         }
-    }
 
-    async checkStatus(orderId) {
-       let order = JSON.parse(getOrder(ctx, orderId));
-       if(order.status == OrderStatus.placed) {
-           throw new Error(`Error: ${orderId} has not been accepted`);
+        if(vaccine.orderId != orderId) {
+            throw new Error(`Error: ${vaccine.orderId} does not match order ${order.id}`);
+        } 
+
+        if(order.vaccineList.includes(vaccine.orderId)) {
+            throw new Error(`Error: ${order.id} already includes ${vaccine.orderId}`);
         }
 
-       if(order.status == OrderStatus.completed) {
-           throw new Error(`Error: ${orderId} is full`);
+        order.vaccineList.push(vaccine.id);
+        await ctx.stub.putState(order.id, Buffer.from(JSON.stringify(order)));
+    }
+
+    async verifyOrderUpdate(ctx, orderId, producerMSPID, numberOfVaccines) {
+        let order = JSON.parse(await this.getOrder(ctx, orderId));
+        if (order.status == OrderStatus.placed) {
+            throw new Error(`Error: ${orderId} has not been accepted`);
         }
-    }
 
-    async checkCapacity(orderId, quantity) {
-      let order = JSON.parse(getOrder(ctx, orderId));
-      if((order.vaccineList.length + quantity) > order.size) {
-          throw new Error(`Error: ${orderId} can not fit that many vaccines`);
-      }
-    }
+        if (order.status == OrderStatus.completed) {
+            throw new Error(`Error: ${orderId} has been completed`);
+        }
 
-    async addVaccineToList(vaccineId, orderId) {
-      let order = JSON.parse(getOrder(ctx, orderId));
-      order.vaccineList.push(vaccineId);
-      await ctx.stub.putState(orderId, Buffer.from(JSON.stringify(order)));
-    }
+        if (order.acceptor != producerMSPID) {
+            throw new Error(`Error: ${cid.getMSPID()} does is not assigned to ${orderId}`);
+        }
 
-    async checkCompleteness(orderId) {
-      let order = JSON.parse(getOrder(ctx, orderId));
-      if(order.vaccineList.length == order.size) {
-	  order.status = OrderStatus.completed;
-          await ctx.stub.putState(orderId, Buffer.from(JSON.stringify(order)));
-      }
+        if (order.vaccineList.length + numberOfVaccines > order.size) {
+            throw new Error(`Error: ${order.vaccineList.length + numberOfVaccines} exceeds ${orderId} capacity`);
+        }
+
+        return true;
     }
 }
 

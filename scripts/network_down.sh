@@ -12,4 +12,7 @@ docker container prune -f
 # Prune unused volumes
 docker volume prune -f
 
+# Prune unused volumes
+docker image prune -f
+
 popd 

@@ -25,7 +25,7 @@ deployVaccineChaincode() {
 }
 
 # Deployments
-#deployOrderChaincode
-#sleep 2s
+deployOrderChaincode
+sleep 2s
 deployVaccineChaincode
 sleep 2s
