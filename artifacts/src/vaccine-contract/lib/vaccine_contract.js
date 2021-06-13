@@ -32,25 +32,9 @@ class VaccineContract extends Contract {
 
         // Counter for ids
         let id = 1000;
-
-        const vaccines = [
-            {
-                id: `v${id}`,
-                name: 'Zenika',
-                producerMSPID: cid.getMSPID(),
-                owner: cid.getMSPID(),
-                status: VaccineStatus.disposed,
-                location: cid.getMSPID(),
-                administeredOnPerson: null,
-                administeredAtLocation:null,
-                administeredOnDate: null
-            }
-        ];
-        await ctx.stub.putState(`v${id}`, Buffer.from(JSON.stringify(vaccines[0])));
-        
-        id = id + 1;
         await ctx.stub.putState('counter', Buffer.from(id.toString())); 
-            
+	produce(ctx, 'Zenika', 1, 'o1000')
+   
         console.info('============= END : Initialize Ledger ===========');
     }
 
@@ -83,7 +67,7 @@ class VaccineContract extends Contract {
     }
 
     // Creates n numbers and puts them on the blockchain
-    async produce(ctx, name, quantity) {
+    async produce(ctx, name, quantity, orderId) {
         let cid = new ClientIdentity(ctx.stub);
         let n = parseInt(quantity);
 
@@ -95,6 +79,15 @@ class VaccineContract extends Contract {
             throw new Error(`Error: quantity: ${quantity} must be > 0`);
         }
 
+	let ccArgs = [orderId, cid.getMSPID()];
+	await ctx.stub.invokeChaincode('checkAcceptor', ccArgs, 'mychannel');
+
+	ccArgs = [orderId];
+        await ctx.stub.invokeChaincode('checkStatus', ccArgs, 'mychannel');
+
+        ccArgs = [orderId, quantity];
+        await ctx.stub.invokeChaincode('checkCapacity', ccArgs, 'mychannel');
+
         let id = parseInt(await ctx.stub.getState('counter'));
         for(var i = 0; i < n; i++) {
             
@@ -104,16 +97,23 @@ class VaccineContract extends Contract {
                 producerMSPID: cid.getMSPID(),
                 status: VaccineStatus.produced,
                 owner: cid.getMSPID(),
+                order: orderId,
                 location: cid.getMSPID(),
                 administeredOnPerson: null,
-                administeredAtLocation:null,
+                administeredAtLocation: null,
                 administeredOnDate: null
             }
             await ctx.stub.putState(`v${id}`, Buffer.from(JSON.stringify(vaccine)));
 
+            ccArgs = [vaccine.id, orderId];
+            await ctx.stub.invokeChaincode('addVaccineToList', ccArgs, 'mychannel');
+
             id = id + 1;
             await ctx.stub.putState('counter', Buffer.from(id.toString()));
         }
+
+        ccArgs = [orderId];
+	await ctx.stub.invokeChaincode('checkCompleteness, ccArgs, 'mychannel');
     }
 
     // Ships the listed vaccines to the hospital in recipient
