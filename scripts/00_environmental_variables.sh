@@ -3,8 +3,6 @@ export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 export FABRIC_CFG_PATH=${PWD}/artifacts/channel/config/
 
-export PRIVATE_DATA_CONFIG=${PWD}/artifacts/private-data/collections_config.json
-
 export CHANNEL_NAME=mychannel
 
 # setGlobalsForOrderer(){
@@ -83,4 +81,15 @@ setGlobalsForVaccineChaincode() {
     export CC_SRC_PATH="./artifacts/src/vaccine-contract"
     export CC_NAME=vaccine
     export VERSION=1
+}
+
+setGlobalsForAppointmentChaincode() {
+    export CHANNEL_NAME="mychannel"
+    export CC_RUNTIME_LANGUAGE="node"
+    export CC_SRC_PATH="./artifacts/src/appointment-contract"
+    export CC_NAME=appointment
+    export VERSION=1
+
+    # We use private data here
+    export PRIVATE_DATA_CONFIG=${PWD}/artifacts/private-data/collections_config.json
 }

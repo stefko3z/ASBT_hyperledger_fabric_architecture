@@ -24,8 +24,21 @@ deployVaccineChaincode() {
     echo "===================== Finished deployment of Vaccine Chaincode ===================== "
 }
 
+# Deploy appointment chaincode
+deployAppointmentChaincode() {
+    echo "===================== Starting deployment of Appointment Chaincode ===================== "
+
+    setGlobalsForAppointmentChaincode
+
+    . scripts/deploy_chaincode_with_private_data.sh
+
+    echo "===================== Finished deployment of Appointment Chaincode ===================== "
+}
+
 # Deployments
-deployOrderChaincode
-sleep 2s
-deployVaccineChaincode
+# deployOrderChaincode
+# sleep 2s
+# deployVaccineChaincode
+# sleep 2s
+deployAppointmentChaincode
 sleep 2s
