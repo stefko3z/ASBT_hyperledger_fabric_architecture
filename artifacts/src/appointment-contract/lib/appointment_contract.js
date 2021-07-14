@@ -34,8 +34,7 @@ class AppointmentContract extends Contract {
         let data = await ctx.stub.getTransient();
 
         let parsedDetails = JSON.parse(Buffer.from(data.get("details")).toString('utf8'));
-        // IMPORTANT: This is not a real hash function, we use it as a placeholder as it is inbuilt
-        // in the future or if you use the project as refference please use a real hash function
+        // NOTE: It might make sense to hash the private id, before using it as a key
         let hashedId = parsedDetails.personalId;
 
         let entry = {
@@ -52,8 +51,7 @@ class AppointmentContract extends Contract {
     async getAppointment(ctx, personalId) {
         let cid = new ClientIdentity(ctx.stub);
 
-        // IMPORTANT: This is not a real hash function, we use it as a placeholder as it is inbuilt
-        // in the future or if you use the project as refference please use a real hash function
+        // NOTE: It might make sense to hash the private id, before using it as a key
         let hashedId = personalId;
  
         let data = await ctx.stub.getPrivateData(PrivateDataCollection, hashedId);
@@ -61,27 +59,14 @@ class AppointmentContract extends Contract {
         return Buffer.from(data).toString('utf-8');
     }
 
+    // Attend appointment, removing it and the private data from the private database
     async attendAppointment(ctx) {
-
         let data = await ctx.stub.getTransient();
         let personalId = Buffer.from(data.get("personalId")).toString('utf8');
-
-        console.info(data);
-        console.info(personalId);
-
-        // let appointment = JSON.parse(await this.getAppointment(ctx, personalId));
-
-        // console.info(appointment);
-
-        // if(appointment.personalId != personalId) {
-        //     throw new Error(`Error: ${personalId} does not have a appointment!`);
-        // }
 
         // TODO: Consume vaccine ...
 
         await ctx.stub.deletePrivateData(PrivateDataCollection, personalId);
-
-        return appointment;
     }
 }
 

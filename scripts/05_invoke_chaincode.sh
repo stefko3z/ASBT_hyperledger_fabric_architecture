@@ -225,16 +225,16 @@ attendAppointment() {
 
 # --- Invoke all functions here ---
 
-# # Invoke order
-# placeOrder
-# acceptOrder
+# Invoke order
+placeOrder
+acceptOrder
 
-# # Invoke vaccine
-# produceVaccine
-# addVaccinesToOrder
-# shipVaccine
-# acknowledgeShipmentOfVaccine
-# completeOrder
+# Invoke vaccine
+produceVaccine
+addVaccinesToOrder
+shipVaccine
+acknowledgeShipmentOfVaccine
+completeOrder
 
 # Invoke appointment
 createAppointment
