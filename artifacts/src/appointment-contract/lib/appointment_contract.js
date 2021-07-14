@@ -34,7 +34,6 @@ class AppointmentContract extends Contract {
         let data = await ctx.stub.getTransient();
 
         let parsedDetails = JSON.parse(Buffer.from(data.get("details")).toString('utf8'));
-        console.info(parsedDetails);
         // IMPORTANT: This is not a real hash function, we use it as a placeholder as it is inbuilt
         // in the future or if you use the project as refference please use a real hash function
         let hashedId = parsedDetails.personalId;
@@ -60,6 +59,29 @@ class AppointmentContract extends Contract {
         let data = await ctx.stub.getPrivateData(PrivateDataCollection, hashedId);
 
         return Buffer.from(data).toString('utf-8');
+    }
+
+    async attendAppointment(ctx) {
+
+        let data = await ctx.stub.getTransient();
+        let personalId = Buffer.from(data.get("personalId")).toString('utf8');
+
+        console.info(data);
+        console.info(personalId);
+
+        // let appointment = JSON.parse(await this.getAppointment(ctx, personalId));
+
+        // console.info(appointment);
+
+        // if(appointment.personalId != personalId) {
+        //     throw new Error(`Error: ${personalId} does not have a appointment!`);
+        // }
+
+        // TODO: Consume vaccine ...
+
+        await ctx.stub.deletePrivateData(PrivateDataCollection, personalId);
+
+        return appointment;
     }
 }
 
